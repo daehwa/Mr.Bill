@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:background="#90000000">
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:gravity="center_vertical|center_horizontal"
+        android:padding="10dp"
+        android:background="#ffffff">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorPrimary"
+            android:textSize="25sp"
+            android:text="몰아주기"
+            android:layout_marginBottom="20dp"/>
+        <RadioGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp">
+            <RadioButton
+                android:id="@+id/btn10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10원"/>
+            <RadioButton
+                android:id="@+id/btn100"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="100원"/>
+            <RadioButton
+                android:id="@+id/btn1000"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1000원"/>
+        </RadioGroup>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/black"
+                android:textSize="15sp"
+                android:text="몰아줄 금액: " />
+            <TextView
+                android:id="@+id/don"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/black"
+                android:textSize="15sp"
+                android:text="0" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/black"
+                android:textSize="15sp"
+                android:text=" 원" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:backgroundTint="#fac20c"
+                android:onClick="okBtn"
+                android:background="@android:color/transparent"
+                android:text="적용"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:onClick="cancelBtn"
+                android:background="@android:color/transparent"
+                android:text="취소"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</LinearLayout>

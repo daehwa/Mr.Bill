@@ -1,0 +1,35 @@
+{
+  "project_info": {
+    "project_number": "500344111498",
+    "project_id": "mr-bill"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:500344111498:android:7c4b4c95d9c03659",
+        "android_client_info": {
+          "package_name": "com.billman.sharing.billman"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADrtmkYzCoZ52yMLW6ZW18B5HI9XC8qT4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
