@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewManager;
 import android.view.Window;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -30,6 +31,7 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class AddInfoActivity extends AppCompatActivity {
     LinearLayout container;
@@ -41,15 +43,19 @@ public class AddInfoActivity extends AppCompatActivity {
     int [] cost=new int[100];
     Window win;
     int num=0;
-    public static Activity InfoActivity;
+    static public  Activity InfoActivity;
     LinearLayout linear;
     ArrayList<String> participants = new ArrayList<String>();
+    HashMap<LinearLayout,ArrayList<String>> participantStore= new HashMap<LinearLayout,ArrayList<String>>();
+    HashMap<LinearLayout,String> costStore= new HashMap<LinearLayout,String>();
 
     EditText addPersonName;
     TextView popTitle;
     RadioGroup costPersonList;
-    LinearLayout ParticipantsList;
+    LinearLayout participantsList;
     ScrollView sv1,sv2;
+    TextView numPeople;
+    LinearLayout recentKey;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,12 +89,25 @@ public class AddInfoActivity extends AppCompatActivity {
 
         Intent openIntent=getIntent();
         if(openIntent.getExtras().getBoolean("key")){
-            String[] openName=openIntent.getExtras().getStringArray("openName");
-            String[] openCost=openIntent.getExtras().getStringArray("openCost");
-            String openTitle=openIntent.getExtras().getString("openTitle");
+            String openTitle=openIntent.getExtras().getString("file_name");
             title.setText(openTitle);
-            for (int i=0;i<openCost.length;i++)
-                addFunction(openName[i],openCost[i]);
+            final DBManager dbManager = new DBManager(getApplicationContext(), openTitle+".db", null,1);
+            ArrayList<CostData> data = dbManager.getData();
+            for (int i=0;i<data.size();i++) {
+                addFunction(data.get(i).getTitle(),String.valueOf(data.get(i).getCost()));
+                String costPersonName=data.get(i).getCostPerson();
+                costStore.put(innerContainer[num-1],costPersonName);
+                if(!participants.contains(costPersonName))
+                    participants.add(costPersonName);
+                String[] doubtedPeopleNames=data.get(i).getParticipants();
+                ArrayList<String> names = new ArrayList<String>();
+                for (String name:doubtedPeopleNames) {
+                    names.add(name);
+                    if(!participants.contains(name))
+                        participants.add(name);
+                }
+                participantStore.put(innerContainer[num-1],names);
+            }
         }
         else addFunction("","");
     }
@@ -124,11 +143,22 @@ public class AddInfoActivity extends AppCompatActivity {
                 name[i] = edt1[i].getText().toString();
                 cost[i] = Integer.parseInt(edt2[i].getText().toString());
         }
-        if(flag&&!title.getText().toString().equals("")) {
+        if(flag&&!title.getText().toString().equals("")&&costStore.size()==num&&participantStore.size()==num) {
+            String [] p = new String[participants.size()];
+            for (int i=0;i<participants.size();i++)
+                p[i]=participants.get(i);
             intent.putExtra("title",title.getText().toString());
-            intent.putExtra("num", num);
-            intent.putExtra("name", name);
-            intent.putExtra("cost", cost);
+            intent.putExtra("participants",p);
+
+            final DBManager dbManager = new DBManager(getApplicationContext(), "temp_saving_file_:::"+title.getText().toString()+".db", null,1);
+            for (int i=0;i<num;i++) {
+                LinearLayout l = innerContainer[i];
+                EditText edName = (EditText)l.getChildAt(0);
+                EditText edCost = (EditText)l.getChildAt(1);
+                dbManager.insert(edName.getText().toString() , edCost.getText().toString(), costStore.get(l), participantStore.get(l));
+            }
+
+
             startActivity(intent);
         }
     }
@@ -139,6 +169,8 @@ public class AddInfoActivity extends AppCompatActivity {
         if(num==1)
             Toast.makeText(this,"더 이상 지울 수 없습니다",Toast.LENGTH_SHORT).show();
         else {
+            costStore.remove(innerContainer[num-1]);
+            participantStore.remove(innerContainer[num-1]);
             container.removeView(innerContainer[num - 1]);
             num--;
         }
@@ -197,31 +229,52 @@ public class AddInfoActivity extends AppCompatActivity {
      * pop layout
      ************/
     public void okBtn(View v) {
-        /*Random random = new Random();
-        int who = random.nextInt(members), n = 1;
-        if (Btn10.isChecked()) n = 100;
-        else if (Btn100.isChecked()) n = 1000;
-        else if (Btn1000.isChecked()) n = 10000;
-        else Toast.makeText(this, "절사단위를 선택해주세요", Toast.LENGTH_SHORT).show();
-        if (n != 1) {
-            for (int i = 0; i < members; i++)
-                for (int j = 0; j < members; j++) {
-                    if (i == who)
-                        continue;
-                    bill[who][j] += bill[i][j] % n;
-                    bill[i][j] = bill[i][j] - bill[i][j] % n;
-                }
-            printResult();
-            ((ViewManager) linear.getParent()).removeView(linear);
-        }*/
+        if (popTitle.getText().toString().equals("참여한 사람")){
+            ArrayList<String> temp=new ArrayList<String>();
+            for (int i=0;i<participantsList.getChildCount();i++){
+                CheckBox cb = (CheckBox) participantsList.getChildAt(i);
+                if (cb.isChecked())
+                    temp.add(cb.getText().toString());
+            }
+            if (temp.size()==0){
+                Toast.makeText(InfoActivity, "사람을 선택해 주세요", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (participantStore.containsKey(recentKey))
+                participantStore.remove(recentKey);
+            participantStore.put(recentKey,temp);
+        }
+        if (popTitle.getText().toString().equals("돈 낸 사람")) {
+            int id = costPersonList.getCheckedRadioButtonId();
+            RadioButton rb = (RadioButton) findViewById(id);
+            if (rb==null){
+                Toast.makeText(InfoActivity, "사람을 선택해 주세요", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (costStore.containsKey(recentKey))
+                costStore.remove(recentKey);
+            costStore.put(recentKey, rb.getText().toString());
+        }
         ((ViewManager) linear.getParent()).removeView(linear);
     }
     public void cancelBtn(View v){
         ((ViewManager) linear.getParent()).removeView(linear);
     }
+
+    /*
+     사람 목록 불러오기 + 정산자, 빚진자 정보 입력하기
+     */
     View.OnClickListener cost_person_action = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
+
+            recentKey = (LinearLayout) view.getParent();
+            //store already checked person list
+            String temp="";
+            if (costStore.containsKey(recentKey)){
+                temp=costStore.get(recentKey);
+            }
+
             LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             linear = (LinearLayout) inflater.inflate(R.layout.layout_money_person, null);
 
@@ -241,13 +294,26 @@ public class AddInfoActivity extends AppCompatActivity {
                 RadioButton participant = new RadioButton(AddInfoActivity.this);
                 participant.setText(participants.get(i));
                 costPersonList.addView(participant);
+                if (temp.equals(participants.get(i))) {
+                    costPersonList.check(participant.getId());
+                }
             }
-
+            sv1.getLayoutParams().height = 400;
         }
     };
+
     View.OnClickListener participants_action = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
+
+            recentKey = (LinearLayout) view.getParent();
+            //store already checked person list
+            ArrayList<String> temp=new ArrayList<String>();
+            if (participantStore.containsKey(recentKey)){
+                temp=participantStore.get(recentKey);
+            }
+            temp.add("");
+
             LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             linear = (LinearLayout) inflater.inflate(R.layout.layout_money_person, null);
 
@@ -260,40 +326,119 @@ public class AddInfoActivity extends AppCompatActivity {
             popTitle = (TextView)findViewById(R.id.pop_title);
             popTitle.setText("참여한 사람");
             sv2 = (ScrollView)findViewById(R.id.sv2);
+            numPeople = (TextView)findViewById(R.id.num_people) ;
 
-            ParticipantsList = (LinearLayout)findViewById(R.id.participants_list);
+            participantsList = (LinearLayout)findViewById(R.id.participants_list);
             for (int i=0;i<participants.size();i++){
                 CheckBox participant = new CheckBox(AddInfoActivity.this);
                 participant.setText(participants.get(i));
-                ParticipantsList.addView(participant);
+                participantsList.addView(participant);
+                participant.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (isChecked){
+                            int n = Integer.parseInt(numPeople.getText().toString());
+                            numPeople.setText(String.valueOf(n+1));
+                        }
+                        else{
+                            int n = Integer.parseInt(numPeople.getText().toString());
+                            numPeople.setText(String.valueOf(n-1));
+                        }
+                    }});
+                if (temp.contains(participants.get(i))) {
+                    participant.setChecked(true);
+                }
             }
-
+            sv2.getLayoutParams().height = 400;
         }
     };
+
+    /*
+      사람추가
+     */
     public void addPopPersonBtn(View v){
         if (addPersonName.getText().toString().equals(""))
             Toast.makeText(AddInfoActivity.this, "입력을 해주세요", Toast.LENGTH_SHORT).show();
+        else if (participants.contains(addPersonName.getText().toString()))
+            Toast.makeText(AddInfoActivity.this, "이미 있는 사람입니다", Toast.LENGTH_SHORT).show();
         else {
             participants.add(addPersonName.getText().toString());
             addPersonName.setText("");
-            System.out.println(popTitle.equals("참여한 사람")+","+popTitle.equals("돈 낸 사람"));
             if (popTitle.getText().toString().equals("참여한 사람")) {
                 CheckBox participant = new CheckBox(AddInfoActivity.this);
                 participant.setText(participants.get(participants.size()-1));
-                ParticipantsList.addView(participant);
-                if (sv2.getHeight()>400)
-                    sv2.getLayoutParams().height = 400;
+                participantsList.addView(participant);
+                participant.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (isChecked){
+                            int n = Integer.parseInt(numPeople.getText().toString());
+                            numPeople.setText(String.valueOf(n+1));
+                        }
+                        else{
+                            int n = Integer.parseInt(numPeople.getText().toString());
+                            numPeople.setText(String.valueOf(n-1));
+                        }
+                    }});
             }
             if (popTitle.getText().toString().equals("돈 낸 사람")) {
                 RadioButton participant = new RadioButton(AddInfoActivity.this);
                 participant.setText(participants.get(participants.size()-1));
                 costPersonList.addView(participant);
-                if (sv1.getHeight()>400)
-                    sv1.getLayoutParams().height = 400;
             }
         }
     }
+
+    /**
+     * 삭제 동작
+     */
     public void deletePopPersonBtn(View v){
-        
+        if (popTitle.getText().toString().equals("참여한 사람")){
+            ArrayList<CheckBox> temp=new ArrayList<CheckBox>();
+            for (int i=0;i<participantsList.getChildCount();i++){
+                CheckBox cb = (CheckBox) participantsList.getChildAt(i);
+                if (cb.isChecked())
+                    temp.add(cb);
+            }
+            if (temp.size()==0)
+                Toast.makeText(InfoActivity, "사람을 선택해 주세요", Toast.LENGTH_SHORT).show();
+            else{
+                int n = Integer.valueOf(numPeople.getText().toString());
+                numPeople.setText(String.valueOf(n-temp.size()));
+                for (int i=0;i<temp.size();i++){
+                    participants.remove(temp.get(i).getText().toString());
+                    participantsList.removeView(temp.get(i));
+                }
+            }
+            for (int i=0;i<temp.size();i++){
+                for (LinearLayout l:innerContainer) {
+                    ArrayList<String> al = participantStore.get(l);
+                    if (al!=null&&al.indexOf(temp.get(i).getText().toString())!=-1)
+                        al.remove(al.indexOf(temp.get(i).getText().toString()));
+                    if(costStore.get(l)!=null&&costStore.get(l).contains(temp.get(i).getText().toString()))
+                        costStore.remove(l);
+                }
+            }
+        }
+        if (popTitle.getText().toString().equals("돈 낸 사람")) {
+            int id = costPersonList.getCheckedRadioButtonId();
+            RadioButton rb = (RadioButton) findViewById(id);
+            if (rb==null){
+                Toast.makeText(InfoActivity, "사람을 선택해 주세요", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            for (LinearLayout l:innerContainer) {
+                ArrayList<String> al = participantStore.get(l);
+                if (al!=null&&al.indexOf(rb.getText().toString())!=-1)
+                    al.remove(al.indexOf(rb.getText().toString()));
+                if(costStore.get(l)!=null&&costStore.get(l).contains(rb.getText().toString()))
+                    costStore.remove(l);
+            }
+            participants.remove(rb.getText().toString());
+            costPersonList.removeView(rb);
+        }
+
+        Toast.makeText(InfoActivity, "삭제되었습니다", Toast.LENGTH_SHORT).show();
     }
 }

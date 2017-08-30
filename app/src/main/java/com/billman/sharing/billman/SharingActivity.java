@@ -1,8 +1,10 @@
 package com.billman.sharing.billman;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -22,11 +24,9 @@ import com.kakao.kakaolink.KakaoLink;
 import com.kakao.kakaolink.KakaoTalkLinkMessageBuilder;
 import com.kakao.util.KakaoParameterException;
 
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -37,14 +37,16 @@ public class SharingActivity extends AppCompatActivity {
     int row=-1,column=-1;
     int members;
     String str,title;
-    String []name;
+    String [] participants;
     TextView don;
-    int [] cost;
     int [][]bill;
     LinearLayout linear;
     Window win;
     RadioButton Btn10,Btn100,Btn1000;
     TextView result;
+    ArrayList<String> pList;
+    ArrayList<CostData> data;
+    String db_path="data/data/com.billman.sharing.billman/databases/";
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
 
@@ -66,35 +68,60 @@ public class SharingActivity extends AppCompatActivity {
 
 
         Intent intent=getIntent();
-        members=intent.getExtras().getInt("num");
-        if(members==0){
-            Intent newStartIntent=new Intent(SharingActivity.this,SplashActivity.class);
-            startActivity(newStartIntent);
-            finish();
-        }
-        bill=new int [members][members];
-        name=intent.getExtras().getStringArray("name");
-        cost=intent.getExtras().getIntArray("cost");
         title=intent.getExtras().getString("title");
-        for (int c=0;c<members;c++)
-            for (int r = 0; r < members; r++)
-                if (r != c)
-                    bill[r][c] = cost[c];
+        participants=intent.getExtras().getStringArray("participants");
+        pList = new ArrayList<String>();
+        for (String name:participants)
+            pList.add(name);
+        final DBManager dbManager = new DBManager(getApplicationContext(), "temp_saving_file_:::"+title+".db", null,1);
+        data = dbManager.getData();
+
+       members=participants.length;
+        bill=new int [members][members];
+
+
+        for (CostData d:data) {
+            int c=pList.indexOf(d.getCostPerson());
+            String[] doubtedP = d.getParticipants();
+            int money = d.getCost()/doubtedP.length;
+
+            for (int i=0;i<doubtedP.length;i++){
+                int r = pList.indexOf(doubtedP[i]);
+                if (r!=c)
+                    bill[r][c]+=money;
+            }
+            //c열에 있는 사람이 r행에 있는사람들에게 받아야함
+        }
+
+
         Offset(bill);
 
         do {
             matrixMul(bill);
             Omit(bill);
-            System.out.println("row:"+row+"  col: "+column);
         }while(row!=-1&&column!=-1);
-        for (int c=0;c<members;c++) {
-            for (int r = 0; r < members; r++) {
-                    bill[r][c] = bill[r][c]/members;
-            }
-        }
+        /*boolean f;
+        do{
+            f = Omit2(bill);
+        }while(f);*/
 
         printResult();
 
+        File file = new File(db_path +"temp_saving_file_:::"+title+".db");
+        file.delete();
+    }
+    public void Offset(int[][] matrix){
+        for(int r=0;r<members;r++)
+            for(int c=r;c<members;c++) {
+                if(matrix[r][c]>matrix[c][r]){
+                    matrix[r][c]=matrix[r][c]-matrix[c][r];
+                    matrix[c][r]=0;
+                }
+                else{
+                    matrix[c][r]=matrix[c][r]-matrix[r][c];
+                    matrix[r][c]=0;
+                }
+            }
     }
     public void matrixMul(int[][] matrix) {
         int[][] mulMatrix=new int [members][members];
@@ -124,19 +151,6 @@ public class SharingActivity extends AppCompatActivity {
                 }
             }
     }
-    public void Offset(int[][] matrix){
-        for(int r=0;r<members;r++)
-            for(int c=r;c<members;c++) {
-                if(matrix[r][c]>matrix[c][r]){
-                    matrix[r][c]=matrix[r][c]-matrix[c][r];
-                    matrix[c][r]=0;
-                }
-                else{
-                    matrix[c][r]=matrix[c][r]-matrix[r][c];
-                    matrix[r][c]=0;
-                }
-            }
-    }
     public void Omit(int[][] matrix){
         if(row==-1&&column==-1)
             return;
@@ -155,6 +169,84 @@ public class SharingActivity extends AppCompatActivity {
             }
         }
     }
+
+    class mPair{
+        int x; int y;
+        public mPair(int X, int Y){ x=X; y=Y;}
+        public int getRow(){return x;}
+        public int getCol(){return y;}
+        public boolean isContain(int X,int Y){
+            return X==y&&Y==x;
+        }
+    }
+    public boolean Omit2(int[][] matrix) {
+        int[][] mulMatrix = new int[members][members];
+        for (int i = 0; i < members; i++) {
+            for (int j = 0; j < members; j++) {
+                if (matrix[i][j] != 0) {
+                    mulMatrix[i][j] = 1;
+                    mulMatrix[j][i] = 1;
+
+                }
+            }
+        }
+
+        for (int i=0;i<members;i++)
+                mulMatrix[i][i] = 0;
+
+        int num = 0;
+       ArrayList<mPair> pair = new ArrayList<mPair>();
+        for (int i = 0; i < members; i++) {
+            String str ="";
+            for (int j = 0; j < members; j++) {
+                if (i==j)
+                    continue;
+                int result =0;
+                for (int k = 0; k < members; k++)
+                    result += mulMatrix[i][k] * mulMatrix[k][j];
+                if (result==2) {
+                    pair.add(new mPair(i,j));
+                    num++;
+                }
+                str+=result+"    ";
+            }
+            System.out.println(str);
+        }
+
+        if (num<4)
+            return false;
+
+        int r = pair.get(0).getRow();
+        int c = pair.get(0).getCol();
+        int min = matrix[r][c];
+        for (int i=1;i<pair.size();i++){
+            int n = matrix[pair.get(i).getRow()][pair.get(i).getCol()];
+            System.out.println(pair.get(i).getRow()+" "+pair.get(i).getCol());
+            if (min>n){
+                min=n;
+                r = pair.get(i).getRow();
+                c = pair.get(i).getCol();
+            }
+        }
+        int last_r=-1,last_c=-1;
+        System.out.println("최소 금액 위치: "+r+" "+c);
+        for (int i=0;i<pair.size();i++){
+
+            int new_r = pair.get(i).getRow() , new_c=pair.get(i).getCol();
+            if (new_r==r&&new_c!=c){
+                matrix[r][new_c]+=matrix[r][c];
+                last_c=new_c;
+            }
+            if (new_r!=r&&new_c==c){
+                matrix[new_r][c]+=matrix[r][c];
+                last_r=new_r;
+            }
+        }
+        matrix[last_r][last_c]-=matrix[r][c];
+        matrix[r][c]=0;
+        return true;
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -176,14 +268,7 @@ public class SharingActivity extends AppCompatActivity {
             KakaoLink kakaoLink= KakaoLink.getKakaoLink(this);
             KakaoTalkLinkMessageBuilder kakaoTalkLinkMessageBuilder=kakaoLink.createKakaoTalkLinkMessageBuilder();
 
-            String persons="각자낸 금액: ";
-            for(int i=0;i<members;i++){
-                persons+=name[i]+" "+cost[i];
-                if(i<members-1)
-                    persons+=", ";
-            }
-            persons+="\n\n";
-            kakaoTalkLinkMessageBuilder.addText("★ "+title+" 정산 결과입니다 ★\n\n"+persons+str);
+            kakaoTalkLinkMessageBuilder.addText("★ "+title+" 정산 결과입니다 ★\n\n"+str);
             kakaoTalkLinkMessageBuilder.addImage("http://postfiles1.naver.net/20160717_64/eoghk7323_1468688703083Buo4l_PNG/message_logo.png?type=w2",320, 100);
 
             kakaoTalkLinkMessageBuilder.addAppButton("Mr.Bill 앱 써보기",
@@ -232,21 +317,64 @@ public class SharingActivity extends AppCompatActivity {
         }
     };
     public void saveCost(View v){
-        try {
-            OutputStream os=openFileOutput(title+".txt", Context.BIND_AUTO_CREATE);
-            BufferedWriter bout=new BufferedWriter(new OutputStreamWriter(os));
-            bout.write(members+"\r\n");
-            for(int i=0;i<members;i++){
-                bout.write(name[i]+"\r\n");
-                bout.write(cost[i]+"\r\n");
-            }
-            bout.close();
-            Toast.makeText(SharingActivity.this, "저장되었습니다", Toast.LENGTH_SHORT).show();
+        boolean flag=true;
+        FilenameFilter fileFilter = new FilenameFilter()  //이부분은 특정 확장자만 가지고 오고 싶을 경우 사용하시면 됩니다.
+        {
+            public boolean accept(File dir, String name)
+            {
+                return name.endsWith("db"); //이 부분에 사용하고 싶은 확장자를 넣으시면 됩니다.
+            } //end accept
+        };
+        File file_search = new File(db_path);
+        File[] files = file_search.listFiles(fileFilter);
+        for(int i = 0;i < files.length;i++)
+        {
+            if(files[i].getName().replaceAll(".db", "").equals(title)){
+                flag=false;
+                new AlertDialog.Builder(SharingActivity.this)
+                        .setMessage("동일한 모임이름이 존재합니다. 덮어쓰시겠습니까?")
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+                        .setPositiveButton("YES", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                File file = new File(db_path + title+".db");
+                                file.delete();
+                                final DBManager dbManager = new DBManager(getApplicationContext(), title+".db", null,1);
+                                for (int i=0;i<data.size();i++) {
+                                    String[] name = data.get(i).getParticipants();
+                                    ArrayList<String> names=new ArrayList<String>();
+                                    for (String s:name) {
+                                        names.add(s);
+                                    }
+                                    dbManager.insert(data.get(i).getTitle(), String.valueOf(data.get(i).getCost()), data.get(i).getCostPerson(),names );
+                                }
+                                Toast.makeText(SharingActivity.this, "저장되었습니다", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Toast.makeText(SharingActivity.this, "취소되었습니다", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                        })
+                        .show();
+            }
+        }
+        if(flag){
+            final DBManager dbManager = new DBManager(getApplicationContext(), title+".db", null,1);
+            for (int i=0;i<data.size();i++) {
+                String[] name = data.get(i).getParticipants();
+                ArrayList<String> names=new ArrayList<String>();
+                for (String s:name) {
+                    names.add(s);
+                }
+                dbManager.insert(data.get(i).getTitle(), String.valueOf(data.get(i).getCost()), data.get(i).getCostPerson(),names );
+            }
+            Toast.makeText(SharingActivity.this, "저장되었습니다", Toast.LENGTH_SHORT).show();
         }
     }
     public void okBtn(View v){
@@ -293,13 +421,13 @@ public class SharingActivity extends AppCompatActivity {
     }
     public void printResult(){
         str="";
-        for (int c=0;c<members;c++) {
+        for (int r=0;r<members;r++) {
             boolean flag=true;
-            for (int r = 0; r < members; r++) {
-                if(bill[c][r]!=0&&flag) {
-                    str=str+name[c]+"님이 "+"\n"; flag=false;}
-                if(bill[c][r]!=0)
-                    str=str+name[r]+"님에게 "+bill[c][r]+"원 지급"+"\n";
+            for (int c = 0; c < members; c++) {
+                if(bill[r][c]!=0&&flag) {
+                    str=str+pList.get(r)+"님이 "+"\n"; flag=false;}
+                if(bill[r][c]!=0)
+                    str=str+pList.get(c)+"님에게 "+bill[r][c]+"원 지급"+"\n";
             }
             if(!flag)
                 str+="\n";
