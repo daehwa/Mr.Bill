@@ -13,7 +13,7 @@
         android:theme="@style/AppTheme"
         >
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
-        <activity android:name=".SplashActivity">
+        <activity android:name="com.mrbill.sharing.billman.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -21,9 +21,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".AddInfoActivity">
+        <activity android:name="com.mrbill.sharing.billman.AddInfoActivity">
         </activity>
-        <activity android:name=".SharingActivity">
+        <activity android:name="com.mrbill.sharing.billman.SharingActivity">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -32,7 +32,7 @@
                     android:host="@string/kakaolink_host" />
             </intent-filter>
         </activity>
-        <activity android:name=".HistoryActivity">
+        <activity android:name="com.mrbill.sharing.billman.HistoryActivity">
         </activity>
         <activity android:name="com.google.android.gms.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"

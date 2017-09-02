@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".AddInfoActivity">
+    xmlns:tools="http://schemas.android.com/tools" tools:context="com.mrbill.sharing.billman.AddInfoActivity">
     <item android:id="@+id/action_button"
         android:title="기록"
         android:icon="@drawable/bill_history"

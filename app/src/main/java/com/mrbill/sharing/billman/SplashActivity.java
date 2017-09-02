@@ -1,9 +1,11 @@
-package com.billman.sharing.billman;
+package com.mrbill.sharing.billman;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+
+import com.billman.sharing.billman.R;
 
 /**
  * Created by snote on 2016-07-15.

@@ -1,4 +1,4 @@
-package com.billman.sharing.billman;
+package com.mrbill.sharing.billman;
 
 import android.app.Activity;
 import android.content.Context;
@@ -26,6 +26,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.billman.sharing.billman.R;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;

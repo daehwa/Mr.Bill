@@ -1,4 +1,4 @@
-package com.billman.sharing.billman;
+package com.mrbill.sharing.billman;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.billman.sharing.billman.R;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
@@ -25,7 +26,7 @@ public class HistoryActivity extends AppCompatActivity {
     ArrayList<String> items;
     ArrayAdapter<String> adapter;
     String [] titleList;
-    String db_path="data/data/com.billman.sharing.billman/databases/";
+    String db_path="data/data/com.mrbill.sharing.billman/databases/";
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         getSupportActionBar().setTitle("정산기록");

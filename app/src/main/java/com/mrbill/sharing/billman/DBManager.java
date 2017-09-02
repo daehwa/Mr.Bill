@@ -1,4 +1,4 @@
-package com.billman.sharing.billman;
+package com.mrbill.sharing.billman;
 
 import android.content.Context;
 import android.database.Cursor;

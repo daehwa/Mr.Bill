@@ -1,4 +1,4 @@
-package com.billman.sharing.billman;
+package com.mrbill.sharing.billman;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,6 +16,7 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.billman.sharing.billman.R;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
@@ -46,7 +47,7 @@ public class SharingActivity extends AppCompatActivity {
     TextView result;
     ArrayList<String> pList;
     ArrayList<CostData> data;
-    String db_path="data/data/com.billman.sharing.billman/databases/";
+    String db_path="data/data/com.mrbill.sharing.billman/databases/";
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
 
@@ -100,10 +101,10 @@ public class SharingActivity extends AppCompatActivity {
             matrixMul(bill);
             Omit(bill);
         }while(row!=-1&&column!=-1);
-        /*boolean f;
+        boolean f;
         do{
             f = Omit2(bill);
-        }while(f);*/
+        }while(f);
 
         printResult();
 
@@ -137,10 +138,10 @@ public class SharingActivity extends AppCompatActivity {
             }
         for(int i=0;i<members;i++)
             for(int j=0;j<members;j++){
-                if(matrix[i][j]==0) {
+                /*if(matrix[i][j]==0) {
                     mulMatrix[i][j] = 0;
                     continue;
-                }
+                }*/
                 if(min==-1&&mulMatrix[i][j]!=0) {
                     min = mulMatrix[i][j];
                     row =i; column=j;
@@ -173,8 +174,8 @@ public class SharingActivity extends AppCompatActivity {
     class mPair{
         int x; int y;
         public mPair(int X, int Y){ x=X; y=Y;}
-        public int getRow(){return x;}
-        public int getCol(){return y;}
+        public int getX(){return x;}
+        public int getY(){return y;}
         public boolean isContain(int X,int Y){
             return X==y&&Y==x;
         }
@@ -197,53 +198,80 @@ public class SharingActivity extends AppCompatActivity {
         int num = 0;
        ArrayList<mPair> pair = new ArrayList<mPair>();
         for (int i = 0; i < members; i++) {
-            String str ="";
-            for (int j = 0; j < members; j++) {
+            for (int j = i+1; j < members; j++) {
                 if (i==j)
                     continue;
                 int result =0;
                 for (int k = 0; k < members; k++)
                     result += mulMatrix[i][k] * mulMatrix[k][j];
-                if (result==2) {
+                if (result>1) {
                     pair.add(new mPair(i,j));
                     num++;
                 }
-                str+=result+"    ";
             }
-            System.out.println(str);
         }
 
-        if (num<4)
+        if (num<2)
             return false;
 
-        int r = pair.get(0).getRow();
-        int c = pair.get(0).getCol();
-        int min = matrix[r][c];
-        for (int i=1;i<pair.size();i++){
-            int n = matrix[pair.get(i).getRow()][pair.get(i).getCol()];
-            System.out.println(pair.get(i).getRow()+" "+pair.get(i).getCol());
-            if (min>n){
-                min=n;
-                r = pair.get(i).getRow();
-                c = pair.get(i).getCol();
-            }
-        }
-        int last_r=-1,last_c=-1;
-        System.out.println("최소 금액 위치: "+r+" "+c);
+        boolean isContain0=false;
         for (int i=0;i<pair.size();i++){
-
-            int new_r = pair.get(i).getRow() , new_c=pair.get(i).getCol();
-            if (new_r==r&&new_c!=c){
-                matrix[r][new_c]+=matrix[r][c];
-                last_c=new_c;
+            for (int j=0;j<pair.size();j++){
+                if (i==j)
+                    continue;
+                int [] g= {pair.get(i).getX(), pair.get(i).getY()};
+                int [] r= {pair.get(j).getX(), pair.get(j).getY()};
+                int min=-1;
+                isContain0=false;
+                int min_pos=0;
+                for(int k=0;k<2;k++){
+                    for (int l=0;l<2;l++){
+                        int value=matrix[g[k]][r[l]];
+                        if(value==0){ isContain0=true; break;}
+                        if (min==-1||min > value){
+                            min=value;
+                            min_pos=k*2+l;
+                        }
+                    }
+                    if (isContain0) break;
+                }
+                if (!isContain0){
+                    int dia,verti,hori;
+                    switch (min_pos){
+                        case 0:
+                            //dia=3; verti=2; hori=1;
+                            matrix[g[1]][r[1]]-=matrix[g[0]][r[0]];
+                            matrix[g[1]][r[0]]+=matrix[g[0]][r[0]];
+                            matrix[g[0]][r[1]]+=matrix[g[0]][r[0]];
+                            matrix[g[0]][r[0]]=0;
+                            break;
+                        case 1:
+                            //dia=2; verti=3; hori=0;
+                            matrix[g[1]][r[0]]-=matrix[g[0]][r[1]];
+                            matrix[g[1]][r[1]]+=matrix[g[0]][r[1]];
+                            matrix[g[0]][r[0]]+=matrix[g[0]][r[1]];
+                            matrix[g[0]][r[1]]=0;
+                            break;
+                        case 2:
+                            dia=1; verti=0; hori=3;
+                            matrix[g[0]][r[1]]-=matrix[g[1]][r[0]];
+                            matrix[g[0]][r[0]]+=matrix[g[1]][r[0]];
+                            matrix[g[1]][r[1]]+=matrix[g[1]][r[0]];
+                            matrix[g[1]][r[0]]=0;
+                            break;
+                        case 3:
+                            dia=0; verti=1; hori=2;
+                            matrix[g[0]][r[0]]-=matrix[g[1]][r[1]];
+                            matrix[g[0]][r[1]]+=matrix[g[1]][r[1]];
+                            matrix[g[1]][r[0]]+=matrix[g[1]][r[1]];
+                            matrix[g[1]][r[1]]=0;
+                            break;
+                    }
+                    break;
+                }
             }
-            if (new_r!=r&&new_c==c){
-                matrix[new_r][c]+=matrix[r][c];
-                last_r=new_r;
-            }
+            if (!isContain0) break;
         }
-        matrix[last_r][last_c]-=matrix[r][c];
-        matrix[r][c]=0;
         return true;
     }
 
