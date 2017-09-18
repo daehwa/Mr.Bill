@@ -162,6 +162,9 @@ public class AddInfoActivity extends AppCompatActivity {
 
             startActivity(intent);
         }
+        else{
+            Toast.makeText(AddInfoActivity.this, "정산에 필요한 사람을 입력해주세요", Toast.LENGTH_SHORT).show();
+        }
     }
     public void addEdt(View v){
         addFunction("","");

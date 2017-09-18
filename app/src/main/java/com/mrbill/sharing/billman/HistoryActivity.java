@@ -61,6 +61,8 @@ public class HistoryActivity extends AppCompatActivity {
         };
         File file = new File(db_path);
         File[] files = file.listFiles(fileFilter);
+        if (files==null)
+            return;
         titleList = new String [files.length]; //파일이 있는 만큼 어레이 생성했구요
         for(int i = 0;i < files.length;i++)
         {

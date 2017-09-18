@@ -8,52 +8,25 @@
     xmlns:ads="http://schemas.android.com/apk/res-auto"
     android:background="@color/colorPrimary"
     tools:ignore="MergeRootFrame">
+
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center">
-        <EditText
-            android:id="@+id/title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="10dp"
-            android:hint="모임 이름"
-            android:gravity="center"
-            android:inputType="textShortMessage"
-            android:textColorHint="#c4e3eb"
-            android:textColor="@android:color/white"/>
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="95dp">
-            <LinearLayout
-                android:id="@+id/parent"
-                android:layout_width="match_parent"
-                android:orientation="vertical"
-                android:layout_height="40dp"
-                android:layout_margin="10dp">
-            </LinearLayout>
-        </ScrollView>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="bottom"
+        android:layout_gravity="bottom|right"
         android:layout_marginBottom="95dp">
+
         <ImageButton
+            android:id="@+id/imageButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/floating_button"
             android:layout_gravity="bottom|right"
-            android:layout_marginRight="7dp"
             android:layout_marginBottom="7dp"
+            android:layout_marginRight="7dp"
+            android:background="@android:color/transparent"
             android:onClick="addEdt"
-            android:background="@android:color/transparent"/>
+            android:src="@drawable/floating_button" />
+
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -87,5 +60,74 @@
             ads:adSize="BANNER"
             android:background="@android:color/white"
             ads:adUnitId="@string/banner_ad_unit_id" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:hint="모임 이름"
+            android:inputType="textShortMessage"
+            android:textColor="@android:color/white"
+            android:textColorHint="#c4e3eb" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ScrollView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="95dp"
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:id="@+id/parent"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_margin="10dp"
+                    android:orientation="vertical"></LinearLayout>
+            </ScrollView>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|right"
+                android:layout_marginBottom="95dp"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|right"
+                    android:layout_marginBottom="7dp"
+                    android:layout_marginRight="7dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/floating_button"
+                    android:visibility="invisible" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|right"
+                    android:layout_marginBottom="7dp"
+                    android:layout_marginRight="7dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/floating_button_delete"
+                    android:visibility="invisible" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 </FrameLayout>
